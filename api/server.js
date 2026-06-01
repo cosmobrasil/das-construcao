@@ -6,7 +6,7 @@ try {
 
 const express = require('express');
 const cors = require('cors');
-const { calculateReport, QUESTION_BY_STEP } = require('./scoring');
+const { calculateReport, QUESTION_BY_STEP, validateAssessmentAnswers } = require('./scoring');
 const { initDb, upsertCompany, saveAssessment, getPool, checkDbHealth, getAssessmentById } = require('./db');
 const { getDashboardOverview } = require('./dashboard');
 
@@ -258,6 +258,15 @@ app.post('/api/assessments', async (req, res) => {
 
     if (!documento) {
       return res.status(400).json({ error: 'Dados da empresa incompletos: faltou o CNPJ/documento.' });
+    }
+
+    const answerValidation = validateAssessmentAnswers(answers);
+    if (!answerValidation.isComplete) {
+      return res.status(400).json({
+        error: 'Respostas inválidas para este questionário.',
+        message: 'A submissão precisa conter as 12 respostas válidas do formulário.',
+        details: answerValidation
+      });
     }
 
     const report = calculateReport({

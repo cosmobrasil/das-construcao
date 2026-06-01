@@ -157,6 +157,53 @@ const STAGE_CONFIG = {
 const QUESTION_BY_ID = Object.fromEntries(QUESTION_DEFINITIONS.map((question) => [question.questionId, question]));
 const QUESTION_BY_STEP = Object.fromEntries(QUESTION_DEFINITIONS.map((question) => [question.step, question]));
 
+function validateAssessmentAnswers(answers) {
+  const normalizedAnswers = Array.isArray(answers) ? answers : [];
+  const seenQuestions = new Set();
+  const missingQuestions = [];
+  const invalidAnswers = [];
+
+  for (const item of normalizedAnswers) {
+    const questionId = String(item?.questionId || '').trim();
+    const answerId = String(item?.answerId || '').trim();
+    const question = QUESTION_BY_ID[questionId];
+
+    if (!question) {
+      invalidAnswers.push({
+        questionId: questionId || null,
+        answerId: answerId || null,
+        reason: 'question_not_found'
+      });
+      continue;
+    }
+
+    seenQuestions.add(questionId);
+
+    if (!answerId || !question.answers[answerId]) {
+      invalidAnswers.push({
+        questionId,
+        answerId: answerId || null,
+        reason: 'answer_not_allowed'
+      });
+    }
+  }
+
+  for (const question of QUESTION_DEFINITIONS) {
+    if (!seenQuestions.has(question.questionId)) {
+      missingQuestions.push(question.questionId);
+    }
+  }
+
+  return {
+    expectedQuestions: QUESTION_DEFINITIONS.length,
+    receivedAnswers: normalizedAnswers.length,
+    missingQuestions,
+    invalidAnswers,
+    validAnswerCount: QUESTION_DEFINITIONS.length - missingQuestions.length - invalidAnswers.filter((item) => item.reason === 'answer_not_allowed').length,
+    isComplete: missingQuestions.length === 0 && invalidAnswers.length === 0
+  };
+}
+
 function getBand(score) {
   if (score >= 85) {
     return { key: 'avancado', label: 'Avançado' };
@@ -312,5 +359,6 @@ module.exports = {
   STAGE_CONFIG,
   calculateReport,
   getBand,
-  roundTo
+  roundTo,
+  validateAssessmentAnswers
 };
