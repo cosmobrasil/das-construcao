@@ -711,6 +711,10 @@
                             <input id="companyCity" type="text" placeholder="Preenchido pela API">
                         </div>
                         <div class="field-group">
+                            <label for="companyState">UF / Estado</label>
+                            <input id="companyState" type="text" maxlength="2" placeholder="Ex.: SP">
+                        </div>
+                        <div class="field-group">
                             <label for="companyCnae">CNAE</label>
                             <input id="companyCnae" type="text" placeholder="Preenchido pela API">
                         </div>
@@ -1070,6 +1074,7 @@
             name: document.getElementById('companyName'),
             responsible: document.getElementById('companyResponsible'),
             city: document.getElementById('companyCity'),
+            state: document.getElementById('companyState'),
             cnae: document.getElementById('companyCnae'),
             email: document.getElementById('companyEmail')
         };
@@ -1100,6 +1105,7 @@
             name: '',
             responsible: '',
             city: '',
+            state: '',
             cnae: '',
             email: ''
         };
@@ -1107,6 +1113,16 @@
         let recordedAnswers = {};
         let reportRequested = false;
         let lastReport = null;
+        let lastArchiveMeta = null;
+
+        function invalidateReport() {
+            reportRequested = false;
+            lastReport = null;
+            lastArchiveMeta = null;
+            if (reportDownloadBtn) {
+                reportDownloadBtn.disabled = true;
+            }
+        }
 
         function setCompanyStatus(message, type = '') {
             companyStatus.textContent = message;
@@ -1122,6 +1138,7 @@
             companyInputs.name.value = data?.name || '';
             companyInputs.responsible.value = data?.responsible || '';
             companyInputs.city.value = data?.city || '';
+            companyInputs.state.value = String(data?.state || '').toUpperCase();
             companyInputs.cnae.value = data?.cnae || '';
             companyInputs.email.value = data?.email || '';
         }
@@ -1132,6 +1149,7 @@
                 companyInputs.name.value.trim() &&
                 companyInputs.responsible.value.trim() &&
                 companyInputs.city.value.trim() &&
+                companyInputs.state.value.trim() &&
                 companyInputs.cnae.value.trim() &&
                 companyInputs.email.value.trim();
 
@@ -1164,6 +1182,8 @@
                 answerLabel: answerMeta.label,
                 points: answerMeta.points
             };
+
+            invalidateReport();
         }
 
         function buildAnswerPayload() {
@@ -1400,6 +1420,9 @@
             const companyLabel = escapeHtml(report.company?.name || report.company?.nome || 'Empresa analisada');
             const identifierLabel = escapeHtml(report.company?.identifier || companyData.identifier || '');
             const sourceLabel = escapeHtml(report.sourceLabel || 'diagnóstico do app');
+            const archiveLabel = lastArchiveMeta?.persisted
+                ? escapeHtml(`Arquivado no backend com ID ${lastArchiveMeta.assessmentId}.`)
+                : escapeHtml(`Arquivamento indisponível${lastArchiveMeta?.archiveError ? `: ${lastArchiveMeta.archiveError}` : '.'}`);
             const summary = escapeHtml(report.summary || '');
             const detail = escapeHtml(report.detail || '');
             const bandLabel = escapeHtml(report.band?.label || 'Básico');
@@ -1559,6 +1582,7 @@
             <h1>${companyLabel}</h1>
             <p class="subtitle">Relatório gerado para ${identifierLabel || 'o cadastro informado'}.</p>
             <p class="subtitle">Fonte usada no download: ${sourceLabel}.</p>
+            <p class="subtitle">${archiveLabel}</p>
             <div class="meta">Gerado em ${escapeHtml(currentDate)}</div>
         </section>
         <section class="grid">
@@ -1645,7 +1669,14 @@
             const companyLabel = report.company?.name || report.company?.nome || 'Empresa analisada';
             reportTitle.textContent = companyLabel;
             reportSubtitle.textContent = `Relatório de Circularidade Empresarial gerado para ${report.company?.identifier || companyData.identifier || 'o cadastro informado'} via ${sourceLabel}.`;
-            setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.`, 'success');
+            if (lastArchiveMeta?.persisted) {
+                const archiveLabel = lastArchiveMeta.assessmentId ? ` Arquivado sob o ID ${lastArchiveMeta.assessmentId}.` : '';
+                setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.${archiveLabel}`, 'success');
+            } else if (lastArchiveMeta) {
+                setReportStatus(`Relatório gerado, mas não arquivado no backend. ${lastArchiveMeta.archiveError || 'Verifique a conexão com o banco Railway.'}`, 'error');
+            } else {
+                setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.`, 'success');
+            }
 
             metricIGC.textContent = `${format(report.igc)}%`;
             metricIGCHint.textContent = `${report.band.label} - visão geral da maturidade circular`;
@@ -1665,11 +1696,21 @@
             (report.stageScores || []).forEach((stage) => {
                 const item = document.createElement('div');
                 item.className = 'stage-item';
-                item.innerHTML = `
-                    <div class="stage-name">${stage.label}</div>
-                    <div class="stage-score">${format(stage.score)}%</div>
-                    <div class="stage-meta">${format(stage.rawPoints)} de ${format(stage.maxPoints)} pontos</div>
-                `;
+                const name = document.createElement('div');
+                name.className = 'stage-name';
+                name.textContent = stage.label;
+
+                const score = document.createElement('div');
+                score.className = 'stage-score';
+                score.textContent = `${format(stage.score)}%`;
+
+                const meta = document.createElement('div');
+                meta.className = 'stage-meta';
+                meta.textContent = `${format(stage.rawPoints)} de ${format(stage.maxPoints)} pontos`;
+
+                item.appendChild(name);
+                item.appendChild(score);
+                item.appendChild(meta);
                 stageList.appendChild(item);
             });
 
@@ -1679,7 +1720,11 @@
         function renderFallbackReport(message = 'Relatório gerado com processamento local.') {
             const report = calculateLocalReport();
             renderReport(report, 'processamento local');
-            setReportStatus(message, 'success');
+            if (lastArchiveMeta?.persisted === false) {
+                setReportStatus(`${message} O relatório não foi arquivado no backend. ${lastArchiveMeta.archiveError || ''}`.trim(), 'error');
+            } else {
+                setReportStatus(message, 'success');
+            }
         }
 
         async function lookupCompanyPublic(identifier) {
@@ -1705,6 +1750,7 @@
                 name: data?.razao_social || data?.nome_fantasia || '',
                 responsible,
                 city: data?.municipio || '',
+                state: String(data?.uf || '').toUpperCase(),
                 cnae: data?.cnae_fiscal || data?.descricao_cnae_fiscal || '',
                 email: '',
                 source: 'brasilapi'
@@ -1758,6 +1804,7 @@
                     name: data?.nome || '',
                     responsible: data?.responsavel || '',
                     city: data?.cidade || '',
+                    state: String(data?.state || '').toUpperCase(),
                     cnae: data?.cnae || '',
                     email: data?.email || '',
                     source: data?.source || ''
@@ -1774,10 +1821,10 @@
             } catch (error) {
                 console.error(error);
                 try {
-                    companyData = await lookupCompanyPublic(identifier);
-                    fillCompanyFields(companyData);
-                    setCompanyStatus('EmpresaAqui indisponível. Dados carregados via fallback público.', 'success');
-                    validateCompanyForm();
+                companyData = await lookupCompanyPublic(identifier);
+                fillCompanyFields(companyData);
+                setCompanyStatus('EmpresaAqui indisponível. Dados carregados via fallback público.', 'success');
+                validateCompanyForm();
                 } catch (fallbackError) {
                     console.error(fallbackError);
                     setCompanyStatus(error.message || 'Não foi possível consultar a API da empresaqui. Você pode preencher os campos manualmente para continuar.', 'error');
@@ -1819,9 +1866,21 @@
                 }
 
                 const data = await response.json();
-                renderReport(data.report, data.assessmentId ? 'backend Railway + PostgreSQL' : 'backend');
+                lastArchiveMeta = {
+                    assessmentId: data.assessmentId || null,
+                    persisted: Boolean(data.persisted),
+                    archiveStatus: data.archiveStatus || '',
+                    archiveError: data.archiveError || ''
+                };
+                renderReport(data.report, data.persisted ? 'backend Railway + PostgreSQL' : 'backend sem arquivamento');
             } catch (error) {
                 console.error(error);
+                lastArchiveMeta = {
+                    assessmentId: null,
+                    persisted: false,
+                    archiveStatus: 'not_archived',
+                    archiveError: error.message || 'Falha ao comunicar com o backend.'
+                };
                 renderFallbackReport('Relatório gerado com processamento local.');
             }
         }
@@ -1893,8 +1952,10 @@
                 companyData.name = companyInputs.name.value.trim();
                 companyData.responsible = companyInputs.responsible.value.trim();
                 companyData.city = companyInputs.city.value.trim();
+                companyData.state = companyInputs.state.value.trim().toUpperCase();
                 companyData.cnae = companyInputs.cnae.value.trim();
                 companyData.email = companyInputs.email.value.trim();
+                invalidateReport();
                 validateCompanyForm();
             });
         });

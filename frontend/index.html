@@ -4,12 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CosmoBrasil 2.0</title>
-    <meta http-equiv="refresh" content="0; url=/questionario_circularidade/">
-    <script>
-        window.location.replace('/questionario_circularidade/');
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --panel: rgba(15, 23, 42, 0.72);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --gold: #d4af37;
+            --blue: #38bdf8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: 'Geist', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 25%),
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.18), transparent 28%),
+                linear-gradient(180deg, #020617 0%, #050816 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 1180px;
+        }
+
+        .hero {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            background: rgba(212, 175, 55, 0.12);
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        h1, h2 { font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 0; }
+
+        h1 {
+            margin: 16px 0 12px;
+            font-size: clamp(32px, 4vw, 54px);
+            line-height: 1.02;
+            letter-spacing: -0.03em;
+        }
+
+        .lead {
+            margin: 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.65;
+            max-width: 900px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 22px;
+            min-height: 220px;
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0 0 14px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font: inherit;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .btn:hover { transform: translateY(-1px); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #f5d35b);
+            color: #111827;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .mini-list {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .mini-list li { margin-bottom: 8px; }
+
+        .footer {
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 860px) {
+            .grid { grid-template-columns: 1fr; }
+            .hero { padding: 20px; border-radius: 20px; }
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecionando para o questionário...</p>
+    <main class="wrap">
+        <section class="hero">
+            <span class="eyebrow">CosmoBrasil 2.0</span>
+            <h1>Do diagnóstico individual ao painel executivo da carteira inteira.</h1>
+            <p class="lead">
+                O app agora tem duas entradas: o questionário operacional para capturar cada empresa e o dashboard territorial
+                de Divinópolis para consolidar resultados, interpretar o distrito e orientar decisões a partir da base respondente.
+            </p>
+
+            <div class="grid">
+                <article class="card">
+                    <h2>Questionário</h2>
+                    <p>
+                        Coleta de empresa, geração do relatório individual e cálculo de IGC, PCM, estágio e recomendações por diagnóstico.
+                    </p>
+                    <div class="actions">
+                        <a class="btn btn-primary" href="/questionario_circularidade/">Abrir questionário</a>
+                    </div>
+                    <ul class="mini-list" style="margin-top: 12px;">
+                        <li>Cadastro com UF e cidade</li>
+                        <li>Relatório individual com gráficos</li>
+                        <li>Salva avaliações na base</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <h2>Distrito Circular</h2>
+                    <p>
+                        Painel territorial de circularidade para Divinópolis, MG, com leitura executiva, empresas em evidência,
+                        tendências da carteira e acesso aos relatórios arquivados.
+                    </p>
+                    <div class="actions">
+                        <a class="btn btn-secondary" href="/dashboard/">Abrir dashboard</a>
+                    </div>
+                    <ul class="mini-list" style="margin-top: 12px;">
+                        <li>Recorte territorial de Divinópolis, MG</li>
+                        <li>Leitura por empresa, estágio e maturidade</li>
+                        <li>Drilldown para relatório arquivado</li>
+                    </ul>
+                </article>
+            </div>
+
+            <div class="footer">
+                A diferença para um BI tradicional está na camada de interpretação: o sistema não só mostra o que aconteceu, mas
+                explica onde o risco está concentrado, qual estágio está travando o distrito e qual leitura executiva merece atenção.
+            </div>
+        </section>
+    </main>
 </body>
 </html>

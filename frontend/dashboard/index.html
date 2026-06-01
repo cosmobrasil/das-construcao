@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distrito Circular de Divinópolis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4f1ea;
+            --bg-strong: #e9e2d5;
+            --panel: rgba(255, 252, 246, 0.84);
+            --panel-strong: rgba(255, 250, 242, 0.96);
+            --line: rgba(89, 74, 48, 0.14);
+            --text: #261b0e;
+            --muted: #6e604f;
+            --accent: #0f766e;
+            --accent-soft: rgba(15, 118, 110, 0.12);
+            --soil: #9a6a2f;
+            --soil-soft: rgba(154, 106, 47, 0.12);
+            --good: #2f855a;
+            --mid: #d18b2e;
+            --risk: #c05621;
+            --danger: #b83232;
+            --shadow: 0 22px 60px rgba(54, 39, 19, 0.12);
+            --radius: 24px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 24%),
+                radial-gradient(circle at top right, rgba(154, 106, 47, 0.16), transparent 26%),
+                linear-gradient(180deg, #f5f2eb 0%, #efe7da 48%, #e7dfd2 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        .page {
+            width: min(1500px, 100%);
+            margin: 0 auto;
+            padding: 28px 20px 40px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.7fr);
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .hero-main {
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(140deg, rgba(15, 118, 110, 0.06), rgba(255, 255, 255, 0)),
+                linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(247, 243, 236, 0.96));
+        }
+
+        .hero-main::after {
+            content: "";
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            right: -140px;
+            bottom: -180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(154, 106, 47, 0.16), transparent 66%);
+            pointer-events: none;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 118, 110, 0.18);
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            margin-top: 16px;
+            font-size: clamp(34px, 4vw, 56px);
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            margin-top: 16px;
+            max-width: 860px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .hero-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #19a394);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+
+        .hero-side {
+            display: grid;
+            gap: 14px;
+        }
+
+        .status-card,
+        .filter-card {
+            padding: 20px;
+        }
+
+        .card-kicker {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .status-value {
+            font-size: 30px;
+            line-height: 1.05;
+            margin-bottom: 8px;
+        }
+
+        .status-copy {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .filters {
+            display: grid;
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .field input {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.84);
+            color: var(--text);
+            padding: 12px 14px;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: rgba(15, 118, 110, 0.42);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .kpi {
+            padding: 18px;
+            min-height: 132px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 243, 234, 0.9));
+        }
+
+        .kpi-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .kpi-value {
+            font-size: 30px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .kpi-copy {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .grid-2,
+        .grid-3 {
+            display: grid;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1.15fr 0.85fr;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .section {
+            padding: 20px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .section-note {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .section-title {
+            font-size: 24px;
+            line-height: 1.1;
+        }
+
+        .summary-copy {
+            color: var(--text);
+            font-size: 18px;
+            line-height: 1.65;
+            margin-bottom: 16px;
+        }
+
+        .signal-list,
+        .text-list,
+        .stack-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .signal-item,
+        .text-item,
+        .stack-item,
+        .company-row,
+        .assessment-row {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.72);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .signal-item strong,
+        .text-item strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .signal-item span,
+        .text-item span,
+        .stack-item span {
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 14px;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .compare-card {
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.74);
+        }
+
+        .compare-card.bi {
+            background: linear-gradient(180deg, rgba(154, 106, 47, 0.08), rgba(255, 255, 255, 0.8));
+        }
+
+        .compare-card.agent {
+            background: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.8));
+        }
+
+        .compare-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .compare-card ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .chart-shell {
+            display: grid;
+            gap: 14px;
+        }
+
+        .donut-shell {
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) 1fr;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .donut-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .donut {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(rgba(0, 0, 0, 0.08) 0deg, rgba(0, 0, 0, 0.08) 360deg);
+            position: relative;
+        }
+
+        .donut::after {
+            content: "";
+            position: absolute;
+            inset: 34px;
+            border-radius: 50%;
+            background: rgba(252, 249, 243, 0.96);
+            border: 1px solid rgba(89, 74, 48, 0.08);
+        }
+
+        .donut-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 32px;
+            z-index: 1;
+        }
+
+        .donut-center strong {
+            font-size: 32px;
+            line-height: 1;
+            display: block;
+        }
+
+        .donut-center span {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .legend {
+            display: grid;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+
+        .legend-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-value {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .bars {
+            display: grid;
+            gap: 12px;
+        }
+
+        .bar-row {
+            display: grid;
+            gap: 8px;
+        }
+
+        .bar-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .bar-label {
+            font-weight: 600;
+        }
+
+        .bar-track {
+            width: 100%;
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(89, 74, 48, 0.08);
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), #34b0a4);
+        }
+
+        .matrix {
+            position: relative;
+            min-height: 360px;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background:
+                linear-gradient(to right, transparent calc(50% - 0.5px), rgba(89, 74, 48, 0.12) calc(50% - 0.5px), rgba(89, 74, 48, 0.12) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+                linear-gradient(to bottom, transparent calc(50% - 0.5px), rgba(89, 74, 48, 0.12) calc(50% - 0.5px), rgba(89, 74, 48, 0.12) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(247, 241, 231, 0.92));
+            overflow: hidden;
+        }
+
+        .matrix-label {
+            position: absolute;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .matrix-label.top { top: 12px; left: 16px; }
+        .matrix-label.bottom { bottom: 12px; right: 16px; }
+        .matrix-label.left { left: 16px; bottom: 50%; transform: translateY(50%); }
+        .matrix-label.right { right: 16px; top: 50%; transform: translateY(-50%); }
+
+        .matrix-dot {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.82);
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(38, 27, 14, 0.18);
+            transform: translate(-50%, -50%);
+        }
+
+        .matrix-dot:hover {
+            width: 18px;
+            height: 18px;
+        }
+
+        .matrix-caption {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .company-list,
+        .assessment-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .company-topline,
+        .assessment-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .row-title {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .row-meta,
+        .row-summary,
+        .row-tagline {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .metric-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.1);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .action-chip {
+            appearance: none;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 999px;
+            color: var(--text);
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            border: 1px dashed rgba(89, 74, 48, 0.22);
+            border-radius: 20px;
+            padding: 18px;
+            color: var(--muted);
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .loading {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .loading span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        .loading span:nth-child(2) { animation-delay: 0.15s; }
+        .loading span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0.7); opacity: 0.35; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 1240px) {
+            .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .grid-2,
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 920px) {
+            .hero { grid-template-columns: 1fr; }
+            .donut-shell { grid-template-columns: 1fr; }
+            .compare-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 720px) {
+            .page { padding: 18px 14px 28px; }
+            .hero-main,
+            .status-card,
+            .filter-card,
+            .section,
+            .kpi { padding: 16px; }
+            .hero-title { font-size: 34px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .matrix { min-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="panel hero-main">
+                <span class="eyebrow">Distrito Circular · Divinópolis</span>
+                <h1 class="hero-title">SISTEMA COGNITIVO DE CIRCULARIDADE</h1>
+                <p class="hero-subtitle">
+                    Dashboard territorial da circularidade das empresas de construção civil de Divinópolis, Minas Gerais.
+                    A leitura combina indicadores consolidados, diagnóstico executivo, empresas em evidência e acesso ao
+                    relatório arquivado de cada respondente.
+                </p>
+                <div class="hero-chips">
+                    <span class="chip">Território-alvo: Divinópolis, MG</span>
+                    <span class="chip">Setor: construção civil</span>
+                    <span class="chip">Camada cognitiva: diagnóstico + prioridade + ação</span>
+                </div>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar distrito</button>
+                    <a class="btn btn-secondary" href="/questionario_circularidade/">Voltar ao formulário</a>
+                </div>
+            </div>
+
+            <div class="hero-side">
+                <div class="panel status-card">
+                    <div class="card-kicker">Status do distrito</div>
+                    <div class="status-value" id="statusValue">Carregando...</div>
+                    <div class="status-copy" id="statusCopy">
+                        <span class="loading"><span></span><span></span><span></span></span>
+                    </div>
+                </div>
+
+                <div class="panel filter-card">
+                    <div class="card-kicker">Recorte territorial</div>
+                    <form class="filters" id="filtersForm">
+                        <div class="field">
+                            <label for="stateFilter">UF</label>
+                            <input id="stateFilter" type="text" maxlength="2" value="MG" placeholder="MG">
+                        </div>
+                        <div class="field">
+                            <label for="cityFilter">Cidade</label>
+                            <input id="cityFilter" type="text" value="Divinopolis" placeholder="Divinopolis">
+                        </div>
+                    </form>
+                    <div class="filters-actions">
+                        <button class="btn btn-primary" id="applyFiltersBtn" type="button">Aplicar recorte</button>
+                        <button class="btn btn-secondary" id="clearFiltersBtn" type="button">Limpar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="kpi-grid">
+            <article class="panel kpi">
+                <div class="kpi-label">Empresas únicas</div>
+                <div class="kpi-value" id="kpiCompanies">0</div>
+                <div class="kpi-copy">Leitura baseada na avaliação mais recente de cada empresa do distrito.</div>
+            </article>
+            <article class="panel kpi">
+                <div class="kpi-label">Avaliações arquivadas</div>
+                <div class="kpi-value" id="kpiAssessments">0</div>
+                <div class="kpi-copy">Histórico consolidado de submissões registradas no backend.</div>
+            </article>
+            <article class="panel kpi">
+                <div class="kpi-label">IGC médio</div>
+                <div class="kpi-value" id="kpiIgc">0%</div>
+                <div class="kpi-copy">Maturidade circular geral da carteira atual do território.</div>
+            </article>
+            <article class="panel kpi">
+                <div class="kpi-label">PCM médio</div>
+                <div class="kpi-value" id="kpiPcm">0%</div>
+                <div class="kpi-copy">Qualidade da circularidade material observada nas empresas.</div>
+            </article>
+            <article class="panel kpi">
+                <div class="kpi-label">Respostas “Não sei”</div>
+                <div class="kpi-value" id="kpiUnknown">0%</div>
+                <div class="kpi-copy">Sinal de fragilidade de evidência, governança ou rastreabilidade.</div>
+            </article>
+            <article class="panel kpi">
+                <div class="kpi-label">Confiança amostral</div>
+                <div class="kpi-value" id="kpiConfidence">0%</div>
+                <div class="kpi-copy" id="kpiConfidenceCopy">Amostra ainda em construção.</div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Diagnóstico territorial</div>
+                        <h2 class="section-title">Leitura do Distrito Circular</h2>
+                    </div>
+                    <div class="section-note" id="intelligenceBadge">Heurística local</div>
+                </div>
+                <p class="summary-copy" id="insightSummary">Carregando leitura estratégica...</p>
+                <div class="signal-list" id="signalList"></div>
+            </article>
+
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">BI + agente</div>
+                        <h2 class="section-title">O que o painel mostra e o que ele conclui</h2>
+                    </div>
+                </div>
+                <div class="compare-grid">
+                    <div class="compare-card bi">
+                        <h3>Visão BI</h3>
+                        <ul id="biList"></ul>
+                    </div>
+                    <div class="compare-card agent">
+                        <h3>A camada cognitiva adiciona</h3>
+                        <ul id="agentList"></ul>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="grid-3">
+            <article class="panel section chart-shell">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Maturidade agregada</div>
+                        <h2 class="section-title">Bandas de circularidade</h2>
+                    </div>
+                    <div class="section-note">Distribuição das empresas por faixa de maturidade.</div>
+                </div>
+                <div class="donut-shell">
+                    <div class="donut-wrap">
+                        <div class="donut" id="donutChart"></div>
+                        <div class="donut-center">
+                            <strong id="donutCenterValue">0%</strong>
+                            <span id="donutCenterLabel">IGC médio da carteira</span>
+                        </div>
+                    </div>
+                    <div class="legend" id="bandLegend"></div>
+                </div>
+            </article>
+
+            <article class="panel section chart-shell">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Estágios</div>
+                        <h2 class="section-title">Força por dimensão</h2>
+                    </div>
+                    <div class="section-note">Onde o distrito ganha tração e onde ele ainda trava.</div>
+                </div>
+                <div class="bars" id="stageBars"></div>
+            </article>
+
+            <article class="panel section chart-shell">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Próximos passos</div>
+                        <h2 class="section-title">Prioridades executivas</h2>
+                    </div>
+                    <div class="section-note">Sinais acionáveis para liderança territorial e empresas.</div>
+                </div>
+                <div class="text-list" id="actionList"></div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Mapa analítico</div>
+                        <h2 class="section-title">Matriz IGC × PCM</h2>
+                    </div>
+                    <div class="section-note">Cada ponto representa a avaliação mais recente de uma empresa.</div>
+                </div>
+                <div class="matrix" id="matrixChart">
+                    <span class="matrix-label top">PCM alto</span>
+                    <span class="matrix-label bottom">PCM baixo</span>
+                    <span class="matrix-label left">IGC baixo</span>
+                    <span class="matrix-label right">IGC alto</span>
+                </div>
+                <p class="matrix-caption" id="matrixCaption">Carregando dispersão da carteira...</p>
+            </article>
+
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Tração temporal</div>
+                        <h2 class="section-title">Evolução das avaliações</h2>
+                    </div>
+                    <div class="section-note" id="trendHeadline">Série histórica em consolidação.</div>
+                </div>
+                <div class="bars" id="trendBars"></div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Empresas em evidência</div>
+                        <h2 class="section-title">Liderança atual do distrito</h2>
+                    </div>
+                    <div class="section-note">Empresas com melhor posição relativa no recorte atual.</div>
+                </div>
+                <div class="company-list" id="leaderboardList"></div>
+            </article>
+
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Empresas de atenção</div>
+                        <h2 class="section-title">Onde agir primeiro</h2>
+                    </div>
+                    <div class="section-note">Empresas com menor maturidade ou maior fragilidade de evidência.</div>
+                </div>
+                <div class="company-list" id="attentionList"></div>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Base observada</div>
+                        <h2 class="section-title">Avaliações recentes</h2>
+                    </div>
+                    <div class="section-note">Entradas recentes da base do distrito, tratadas apenas de forma coletiva.</div>
+                </div>
+                <div class="assessment-list" id="recentAssessments"></div>
+            </article>
+
+            <article class="panel section">
+                <div class="section-head">
+                    <div>
+                        <div class="card-kicker">Perguntas de liderança</div>
+                        <h2 class="section-title">Foco coletivo do distrito</h2>
+                    </div>
+                    <div class="section-note">Questões que a governança territorial deve responder a partir desta amostra.</div>
+                </div>
+                <div class="text-list" id="leadershipQuestions"></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script>
+        const API_BASE_URL = window.COSMOBRASIL_API_BASE_URL || '';
+        const fmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+        const intFmt = new Intl.NumberFormat('pt-BR');
+        const DEFAULT_FILTERS = { state: 'MG', city: 'Divinopolis' };
+
+        const els = {
+            statusValue: document.getElementById('statusValue'),
+            statusCopy: document.getElementById('statusCopy'),
+            intelligenceBadge: document.getElementById('intelligenceBadge'),
+            kpiCompanies: document.getElementById('kpiCompanies'),
+            kpiAssessments: document.getElementById('kpiAssessments'),
+            kpiIgc: document.getElementById('kpiIgc'),
+            kpiPcm: document.getElementById('kpiPcm'),
+            kpiUnknown: document.getElementById('kpiUnknown'),
+            kpiConfidence: document.getElementById('kpiConfidence'),
+            kpiConfidenceCopy: document.getElementById('kpiConfidenceCopy'),
+            insightSummary: document.getElementById('insightSummary'),
+            signalList: document.getElementById('signalList'),
+            biList: document.getElementById('biList'),
+            agentList: document.getElementById('agentList'),
+            donutChart: document.getElementById('donutChart'),
+            donutCenterValue: document.getElementById('donutCenterValue'),
+            bandLegend: document.getElementById('bandLegend'),
+            stageBars: document.getElementById('stageBars'),
+            actionList: document.getElementById('actionList'),
+            matrixChart: document.getElementById('matrixChart'),
+            matrixCaption: document.getElementById('matrixCaption'),
+            trendHeadline: document.getElementById('trendHeadline'),
+            trendBars: document.getElementById('trendBars'),
+            leaderboardList: document.getElementById('leaderboardList'),
+            attentionList: document.getElementById('attentionList'),
+            recentAssessments: document.getElementById('recentAssessments'),
+            leadershipQuestions: document.getElementById('leadershipQuestions'),
+            stateFilter: document.getElementById('stateFilter'),
+            cityFilter: document.getElementById('cityFilter')
+        };
+
+        function format(value) {
+            return fmt.format(Number(value || 0));
+        }
+
+        function formatInteger(value) {
+            return intFmt.format(Number(value || 0));
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Sem data';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return 'Sem data';
+            return date.toLocaleString('pt-BR');
+        }
+
+        function clearNode(node) {
+            while (node.firstChild) node.removeChild(node.firstChild);
+        }
+
+        function createText(tag, className, text) {
+            const el = document.createElement(tag);
+            if (className) el.className = className;
+            el.textContent = text;
+            return el;
+        }
+
+        function createListItem(title, body) {
+            const item = document.createElement('div');
+            item.className = 'text-item';
+            item.appendChild(createText('strong', '', title));
+            item.appendChild(createText('span', '', body));
+            return item;
+        }
+
+        function renderEmpty(node, message) {
+            clearNode(node);
+            node.appendChild(createText('div', 'empty-state', message));
+        }
+
+        function bandColor(key) {
+            if (key === 'advanced') return 'var(--good)';
+            if (key === 'good') return 'var(--accent)';
+            if (key === 'moderate') return 'var(--mid)';
+            return 'var(--danger)';
+        }
+
+        function barColor(score) {
+            if (score >= 75) return 'linear-gradient(90deg, #2f855a, #48bb78)';
+            if (score >= 55) return 'linear-gradient(90deg, #0f766e, #34b0a4)';
+            if (score >= 35) return 'linear-gradient(90deg, #d18b2e, #e7a545)';
+            return 'linear-gradient(90deg, #c05621, #dd6b20)';
+        }
+
+        function currentFilters() {
+            return {
+                state: els.stateFilter.value.trim(),
+                city: els.cityFilter.value.trim()
+            };
+        }
+
+        function renderDonut(bands, averageIgc) {
+            if (!bands.length) {
+                els.donutChart.style.background = 'conic-gradient(rgba(0,0,0,0.08) 0deg, rgba(0,0,0,0.08) 360deg)';
+                clearNode(els.bandLegend);
+                els.donutCenterValue.textContent = '0%';
+                return;
+            }
+
+            let cursor = 0;
+            const segments = [];
+            const total = bands.reduce((sum, item) => sum + item.count, 0);
+
+            bands.forEach((item) => {
+                const slice = total ? (item.count / total) * 360 : 0;
+                const end = cursor + slice;
+                segments.push(`${bandColor(item.key)} ${cursor}deg ${end}deg`);
+                cursor = end;
+            });
+
+            els.donutChart.style.background = `conic-gradient(${segments.join(', ')})`;
+            els.donutCenterValue.textContent = `${format(averageIgc)}%`;
+
+            clearNode(els.bandLegend);
+            bands.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'legend-item';
+
+                const left = document.createElement('div');
+                left.className = 'legend-left';
+
+                const swatch = document.createElement('span');
+                swatch.className = 'swatch';
+                swatch.style.background = bandColor(item.key);
+
+                left.appendChild(swatch);
+                left.appendChild(createText('span', '', item.label));
+
+                row.appendChild(left);
+                row.appendChild(createText('div', 'legend-value', `${item.count} empresa(s) · ${format(item.percent)}%`));
+                els.bandLegend.appendChild(row);
+            });
+        }
+
+        function renderStageBars(stages) {
+            clearNode(els.stageBars);
+            if (!stages.length) {
+                renderEmpty(els.stageBars, 'Sem dados por estágio.');
+                return;
+            }
+
+            stages.forEach((stage) => {
+                const row = document.createElement('div');
+                row.className = 'bar-row';
+
+                const meta = document.createElement('div');
+                meta.className = 'bar-meta';
+                meta.appendChild(createText('span', 'bar-label', stage.label));
+                meta.appendChild(createText('span', 'row-meta', `${format(stage.score)}%`));
+
+                const track = document.createElement('div');
+                track.className = 'bar-track';
+
+                const fill = document.createElement('div');
+                fill.className = 'bar-fill';
+                fill.style.width = `${Math.max(0, Math.min(100, Number(stage.score || 0)))}%`;
+                fill.style.background = barColor(Number(stage.score || 0));
+
+                track.appendChild(fill);
+                row.appendChild(meta);
+                row.appendChild(track);
+                els.stageBars.appendChild(row);
+            });
+        }
+
+        function renderNarrative(data) {
+            const intelligence = data.aiInsights || data.insights || {};
+            els.intelligenceBadge.textContent = data.intelligenceMode === 'openrouter' ? 'Leitura por IA' : 'Leitura heurística';
+            els.insightSummary.textContent = intelligence.boardMemo || intelligence.executiveSummary || intelligence.summary || 'Sem leitura disponível.';
+
+            clearNode(els.signalList);
+            [
+                ['Território', intelligence.territoryInsight || data.districtProfile.sampleNote || 'Sem leitura territorial.'],
+                ['Concentração', intelligence.concentrationInsight || `As 3 empresas mais recorrentes representam ${format(data.diagnostics.topAssessmentLoadShare)}% das avaliações históricas.`],
+                ['Qualidade da base', intelligence.dataQualityInsight || `Taxa de respostas “Não sei”: ${format(data.unknownAnswerRate)}%.`],
+                ['Tração temporal', data.districtProfile.trendSignal?.message || 'Sem leitura temporal disponível.']
+            ].forEach(([title, body]) => {
+                const item = document.createElement('div');
+                item.className = 'signal-item';
+                item.appendChild(createText('strong', '', title));
+                item.appendChild(createText('span', '', body));
+                els.signalList.appendChild(item);
+            });
+        }
+
+        function renderBiVsAgent(data) {
+            clearNode(els.biList);
+            clearNode(els.agentList);
+
+            [
+                `${formatInteger(data.totalCompanies)} empresa(s) únicas no recorte atual.`,
+                `${formatInteger(data.totalAssessments)} avaliação(ões) arquivadas no histórico.`,
+                `IGC médio de ${format(data.averageIgc)}% e PCM médio de ${format(data.averagePcm)}%.`,
+                `Banda dominante: ${data.districtProfile.dominantBand}.`
+            ].forEach((text) => {
+                const li = document.createElement('li');
+                li.textContent = text;
+                els.biList.appendChild(li);
+            });
+
+            const intelligence = data.aiInsights || data.insights || {};
+            [
+                intelligence.whyThisBeatsBI || 'A leitura cognitiva separa métrica de prioridade e sugere o que fazer primeiro.',
+                ...((intelligence.decisionMemo || []).slice(0, 2)),
+                ...((data.diagnostics.prioritySignals || []).slice(0, 1))
+            ].filter(Boolean).forEach((text) => {
+                const li = document.createElement('li');
+                li.textContent = text;
+                els.agentList.appendChild(li);
+            });
+        }
+
+        function renderTextList(node, items, prefix) {
+            clearNode(node);
+            if (!items.length) {
+                renderEmpty(node, 'Sem itens disponíveis neste bloco.');
+                return;
+            }
+
+            items.forEach((item) => {
+                const body = typeof item === 'string' ? item : String(item || '');
+                node.appendChild(createListItem(prefix, body));
+            });
+        }
+
+        function renderMatrix(points) {
+            const labels = els.matrixChart.querySelectorAll('.matrix-dot');
+            labels.forEach((node) => node.remove());
+
+            if (!points.length) {
+                els.matrixCaption.textContent = 'Sem dados suficientes para posicionar empresas na matriz.';
+                return;
+            }
+
+            points.forEach((point) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'matrix-dot';
+                dot.style.left = `${Math.max(6, Math.min(94, Number(point.igc || 0)))}%`;
+                dot.style.top = `${100 - Math.max(6, Math.min(94, Number(point.pcm || 0)))}%`;
+                dot.style.background = bandColor(point.bandKey);
+                dot.title = `${point.companyName} · IGC ${format(point.igc)}% · PCM ${format(point.pcm)}%`;
+                els.matrixChart.appendChild(dot);
+            });
+
+            els.matrixCaption.textContent = 'Quadrante superior direito: empresas mais equilibradas entre circularidade geral e material.';
+        }
+
+        function renderTrend(trend, diagnostics) {
+            els.trendHeadline.textContent = diagnostics?.trendSignal?.message || 'Histórico em observação.';
+            clearNode(els.trendBars);
+
+            if (!trend.length) {
+                renderEmpty(els.trendBars, 'Sem série histórica suficiente.');
+                return;
+            }
+
+            const maxCount = Math.max(...trend.map((item) => Number(item.count || 0)), 1);
+            trend.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'bar-row';
+
+                const meta = document.createElement('div');
+                meta.className = 'bar-meta';
+                meta.appendChild(createText('span', 'bar-label', item.label));
+                meta.appendChild(createText('span', 'row-meta', `${item.count} avaliação(ões) · IGC ${format(item.avgIgc)}%`));
+
+                const track = document.createElement('div');
+                track.className = 'bar-track';
+
+                const fill = document.createElement('div');
+                fill.className = 'bar-fill';
+                fill.style.width = `${Math.max(10, (Number(item.count || 0) / maxCount) * 100)}%`;
+                fill.style.background = 'linear-gradient(90deg, var(--soil), #cf9750)';
+
+                track.appendChild(fill);
+                row.appendChild(meta);
+                row.appendChild(track);
+                els.trendBars.appendChild(row);
+            });
+        }
+
+        function buildCompanyRow(item) {
+            const row = document.createElement('div');
+            row.className = 'company-row';
+
+            const topline = document.createElement('div');
+            topline.className = 'company-topline';
+
+            const left = document.createElement('div');
+            left.appendChild(createText('div', 'row-title', item.name));
+            left.appendChild(createText('div', 'row-meta', `${item.city}, ${item.state} · ${item.assessmentCount} avaliação(ões) no histórico`));
+
+            const pill = createText('div', 'metric-pill', `${format(item.igc)}% IGC`);
+
+            topline.appendChild(left);
+            topline.appendChild(pill);
+
+            row.appendChild(topline);
+            row.appendChild(createText('div', 'row-tagline', `PCM ${format(item.pcm)}% · Banda ${item.band} · “Não sei” ${format(item.unknownRate)}%`));
+
+            const stageLine = item.weakestStage
+                ? `Gargalo: ${item.weakestStage.label} (${format(item.weakestStage.score)}%).`
+                : 'Sem detalhe de estágio.';
+            row.appendChild(createText('div', 'row-summary', stageLine));
+
+            return row;
+        }
+
+        function renderCompanies(node, items, emptyMessage) {
+            clearNode(node);
+            if (!items.length) {
+                renderEmpty(node, emptyMessage);
+                return;
+            }
+
+            items.forEach((item) => {
+                node.appendChild(buildCompanyRow(item));
+            });
+        }
+
+        function renderRecentAssessments(items) {
+            clearNode(els.recentAssessments);
+            if (!items.length) {
+                renderEmpty(els.recentAssessments, 'Sem avaliações recentes disponíveis.');
+                return;
+            }
+
+            items.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'assessment-row';
+
+                const topline = document.createElement('div');
+                topline.className = 'assessment-topline';
+
+                const left = document.createElement('div');
+                left.appendChild(createText('div', 'row-title', item.companyName));
+                left.appendChild(createText('div', 'row-meta', `Assessment ${item.assessmentId} · ${formatDate(item.createdAt)}`));
+
+                const pill = createText('div', 'metric-pill', `${item.band} · ${format(item.igc)}%`);
+
+                topline.appendChild(left);
+                topline.appendChild(pill);
+
+                row.appendChild(topline);
+                row.appendChild(createText('div', 'row-tagline', `${item.city}, ${item.state} · PCM ${format(item.pcm)}% · “Não sei” ${format(item.unknownRate)}%`));
+                row.appendChild(createText('div', 'row-summary', item.reportSummary));
+
+                els.recentAssessments.appendChild(row);
+            });
+        }
+
+        function renderDashboard(data) {
+            const generatedLabel = data.generatedAt ? formatDate(data.generatedAt) : 'agora';
+            const intelligenceMode = data.intelligenceMode === 'openrouter' ? 'IA conectada' : 'Heurística local';
+
+            els.statusValue.textContent = data.districtProfile.territory || 'Distrito analisado';
+            els.statusCopy.textContent = `${data.districtProfile.sampleStatus} · ${data.totalCompanies} empresa(s) · ${data.totalAssessments} avaliação(ões) · leitura ${intelligenceMode.toLowerCase()} · atualizado em ${generatedLabel}.`;
+
+            els.kpiCompanies.textContent = formatInteger(data.totalCompanies);
+            els.kpiAssessments.textContent = formatInteger(data.totalAssessments);
+            els.kpiIgc.textContent = `${format(data.averageIgc)}%`;
+            els.kpiPcm.textContent = `${format(data.averagePcm)}%`;
+            els.kpiUnknown.textContent = `${format(data.unknownAnswerRate)}%`;
+            els.kpiConfidence.textContent = `${format(data.districtProfile.sampleConfidence)}%`;
+            els.kpiConfidenceCopy.textContent = data.districtProfile.sampleNote || 'Amostra em observação.';
+
+            renderNarrative(data);
+            renderBiVsAgent(data);
+            renderDonut(data.bandDistribution || [], data.averageIgc || 0);
+            renderStageBars(data.stageAverages || []);
+            renderTextList(els.actionList, (data.aiInsights?.priorityActions || data.insights?.priorityActions || data.diagnostics.prioritySignals || []).slice(0, 5), 'Prioridade');
+            renderMatrix(data.companyMatrix || []);
+            renderTrend(data.monthlyTrend || [], data.diagnostics || {});
+            renderCompanies(els.leaderboardList, data.companyLeaderboard || [], 'Sem empresas líderes disponíveis.');
+            renderCompanies(els.attentionList, data.attentionCompanies || [], 'Sem empresas de atenção disponíveis.');
+            renderRecentAssessments(data.recentAssessments || []);
+            renderTextList(els.leadershipQuestions, data.diagnostics?.leadershipQuestions || [], 'Pergunta');
+        }
+
+        async function loadDashboard() {
+            const filters = currentFilters();
+            const params = new URLSearchParams();
+            if (filters.state) params.set('state', filters.state);
+            if (filters.city) params.set('city', filters.city);
+
+            els.statusValue.textContent = 'Carregando distrito...';
+            els.statusCopy.innerHTML = '<span class="loading"><span></span><span></span><span></span></span>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/dashboard/overview${params.toString() ? `?${params.toString()}` : ''}`, {
+                    headers: { Accept: 'application/json' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Falha ao carregar dashboard (${response.status}).`);
+                }
+
+                const data = await response.json();
+                renderDashboard(data);
+            } catch (error) {
+                els.statusValue.textContent = 'Dashboard indisponível';
+                els.statusCopy.textContent = error.message;
+                [
+                    els.signalList,
+                    els.stageBars,
+                    els.actionList,
+                    els.trendBars,
+                    els.leaderboardList,
+                    els.attentionList,
+                    els.recentAssessments,
+                    els.leadershipQuestions
+                ].forEach((node) => renderEmpty(node, 'Não foi possível carregar este bloco.'));
+                clearNode(els.bandLegend);
+                els.donutChart.style.background = 'conic-gradient(rgba(0,0,0,0.08) 0deg, rgba(0,0,0,0.08) 360deg)';
+                els.matrixCaption.textContent = 'Sem dados disponíveis para a matriz.';
+            }
+        }
+
+        document.getElementById('applyFiltersBtn').addEventListener('click', loadDashboard);
+        document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+        document.getElementById('filtersForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            loadDashboard();
+        });
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+            els.stateFilter.value = DEFAULT_FILTERS.state;
+            els.cityFilter.value = DEFAULT_FILTERS.city;
+            loadDashboard();
+        });
+
+        loadDashboard();
+    </script>
+</body>
+</html>
