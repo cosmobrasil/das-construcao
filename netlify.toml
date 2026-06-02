@@ -1,5 +1,5 @@
 [build]
-  publish = "frontend"
+  publish = "frontend/questionario_circularidade"
 
 [build.environment]
   NODE_VERSION = "20"
