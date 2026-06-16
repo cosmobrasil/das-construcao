@@ -77,7 +77,7 @@ async function initDb() {
 
     CREATE TABLE IF NOT EXISTS assessments (
       id BIGSERIAL PRIMARY KEY,
-      company_id BIGINT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+      company_id BIGINT REFERENCES companies(id) ON DELETE CASCADE,
       igc NUMERIC(6,2) NOT NULL,
       pcm NUMERIC(6,2) NOT NULL,
       total_points NUMERIC(6,2) NOT NULL,
@@ -99,6 +99,8 @@ async function initDb() {
       stage_key TEXT NOT NULL,
       UNIQUE (assessment_id, question_id)
     );
+
+    ALTER TABLE assessments ALTER COLUMN company_id DROP NOT NULL;
   `);
 }
 
@@ -234,7 +236,7 @@ async function getAssessmentById(assessmentId) {
         c.cnae,
         c.email
       FROM assessments a
-      INNER JOIN companies c ON c.id = a.company_id
+      LEFT JOIN companies c ON c.id = a.company_id
       WHERE a.id = $1
       LIMIT 1;
     `,
@@ -305,11 +307,62 @@ async function getAssessmentById(assessmentId) {
   };
 }
 
+async function listAdminResponses() {
+  const currentPool = getPool();
+  if (!currentPool) {
+    return [];
+  }
+
+  const result = await currentPool.query(
+    `
+      SELECT
+        a.id,
+        a.created_at,
+        a.igc,
+        a.pcm,
+        a.analysis_json,
+        c.documento_cnpj,
+        c.nome,
+        c.responsavel,
+        c.cidade,
+        c.state,
+        c.cnae,
+        c.email
+      FROM assessments a
+      LEFT JOIN companies c ON c.id = a.company_id
+      ORDER BY a.created_at DESC, a.id DESC;
+    `
+  );
+
+  return result.rows.map((row) => {
+    const archivedCompany = row.analysis_json?.company || {};
+
+    return {
+      id: row.id,
+      created_at: row.created_at,
+      igc: Number(row.igc || 0),
+      pcm: Number(row.pcm || 0),
+      company: {
+        documento_cnpj: archivedCompany.documento_cnpj || row.documento_cnpj || '',
+        nome: archivedCompany.nome || row.nome || '',
+        responsavel: archivedCompany.responsavel || row.responsavel || '',
+        cidade: archivedCompany.cidade || row.cidade || '',
+        state: archivedCompany.state || row.state || '',
+        cnae: archivedCompany.cnae || row.cnae || '',
+        email: archivedCompany.email || row.email || ''
+      },
+      summary: row.analysis_json?.summary || '',
+      band: row.analysis_json?.band || null
+    };
+  });
+}
+
 module.exports = {
   getPool,
   checkDbHealth,
   initDb,
   upsertCompany,
   saveAssessment,
-  getAssessmentById
+  getAssessmentById,
+  listAdminResponses
 };
