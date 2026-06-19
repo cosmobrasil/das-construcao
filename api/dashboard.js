@@ -1,5 +1,6 @@
 const { getPool } = require('./db');
 const { roundTo } = require('./scoring');
+const { log } = require('./logger');
 const crypto = require('crypto');
 
 const STAGE_ORDER = [
@@ -1002,12 +1003,12 @@ async function getDashboardOverview(filters = {}) {
     } catch (error) {
       payload.aiInsights = null;
       payload.intelligenceMode = 'heuristic';
-      console.warn('OpenRouter insights unavailable:', error.message);
+      log('DASH', 'WARN', 'OpenRouter insights unavailable', { error: error.message });
     }
 
     return payload;
   } catch (error) {
-    console.warn('Dashboard database unavailable:', error.message);
+    log('DASH', 'WARN', 'Dashboard database unavailable', { error: error.message });
     return buildEmptyOverview(filters);
   }
 }

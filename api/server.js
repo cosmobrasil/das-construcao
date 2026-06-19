@@ -7,9 +7,10 @@ try {
 const express = require('express');
 const cors = require('cors');
 const { calculateReport, QUESTION_BY_STEP, validateAssessmentAnswers } = require('./scoring');
-const { initDb, upsertCompany, saveAssessment, getPool, checkDbHealth, getAssessmentById, listAdminResponses } = require('./db');
+const { initDb, upsertCompany, saveAssessment, getPool, checkDbHealth, getAssessmentById, listAdminResponses, detectarSchema } = require('./db');
 const { getDashboardOverview } = require('./dashboard');
 const { buildReportHtmlDocument, buildReportPdfBuffer, getSafeFileStem } = require('./admin-panel');
+const { log } = require('./logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -201,31 +202,101 @@ async function lookupBrasilApi(documento) {
 }
 
 app.use(express.json({ limit: '1mb' }));
-app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((item) => item.trim()) : true,
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requisições sem origin (apps nativos, Postman, etc.)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Lista de origens fixas do CORS_ORIGIN (separadas por vírgula)
+    const fixedOrigins = process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((item) => item.trim()).filter(Boolean)
+      : [];
+
+    // Padrões regex de origens permitidas
+    const allowedPatterns = [
+      /\.netlify\.app$/,
+      /^https?:\/\/localhost(:\d+)?$/,
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/
+    ];
+
+    const allowed = fixedOrigins.some((o) => origin === o) ||
+      allowedPatterns.some((pattern) => pattern.test(origin));
+
+    if (allowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+    }
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-token', 'x-admin-token']
-}));
+};
+
+app.use(cors(corsOptions));
 
 app.get('/health', async (_req, res) => {
   const db = await checkDbHealth();
+  let schema = null;
+  const pool = getPool();
+  if (pool) {
+    try { schema = await detectarSchema(pool); } catch { /* ignore */ }
+  }
   res.status(db.reachable || !db.configured ? 200 : 503).json({
     ok: db.reachable || !db.configured,
     service: 'cosmobrasil-backend',
     database: db.reachable,
     databaseConfigured: db.configured,
-    databaseError: db.error
+    databaseError: db.error,
+    schema
   });
 });
 
 app.get('/api/health', async (_req, res) => {
   const db = await checkDbHealth();
+  let schema = null;
+  const pool = getPool();
+  if (pool) {
+    try { schema = await detectarSchema(pool); } catch { /* ignore */ }
+  }
   res.status(db.reachable || !db.configured ? 200 : 503).json({
     ok: db.reachable || !db.configured,
     service: 'cosmobrasil-backend',
     database: db.reachable,
     databaseConfigured: db.configured,
-    databaseError: db.error
+    databaseError: db.error,
+    schema
+  });
+});
+
+app.get('/api/status', async (_req, res) => {
+  const db = await checkDbHealth();
+  let schema = null;
+  const pool = getPool();
+  if (pool) {
+    try { schema = await detectarSchema(pool); } catch { /* ignore */ }
+  }
+
+  const empresaquiConfigured = Boolean(process.env.EMPRESAQUI_API_URL && process.env.EMPRESAQUI_TOKEN);
+
+  res.json({
+    ok: true,
+    service: 'cosmobrasil-backend',
+    dependencies: {
+      database: {
+        configured: db.configured,
+        reachable: db.reachable,
+        error: db.error
+      },
+      schema,
+      empresaqui: {
+        configured: empresaquiConfigured
+      },
+      openrouter: {
+        configured: Boolean(process.env.OPENROUTER_API_KEY)
+      }
+    }
   });
 });
 
@@ -233,7 +304,7 @@ app.get('/', (_req, res) => {
   res.json({
     ok: true,
     service: 'cosmobrasil-backend',
-    endpoints: ['/health', '/api/health', '/api/company/lookup', '/api/assessments', '/api/assessments/:id', '/api/questions', '/api/dashboard/overview', '/api/admin/respostas', '/api/admin/respostas/:id/html', '/api/admin/respostas/:id/pdf']
+    endpoints: ['/health', '/api/health', '/api/status', '/api/company/lookup', '/api/assessments', '/api/assessments/:id', '/api/questions', '/api/dashboard/overview', '/api/admin/respostas', '/api/admin/respostas/:id/html', '/api/admin/respostas/:id/pdf']
   });
 });
 
@@ -246,7 +317,7 @@ app.get('/api/dashboard/overview', async (req, res) => {
 
     return res.json(overview);
   } catch (error) {
-    console.error(error);
+    log('DASH', 'ERROR', 'Falha ao gerar dashboard agregado', { error: error.message });
     return res.status(500).json({
       error: 'Falha ao gerar o dashboard agregado.',
       message: error.message
@@ -283,7 +354,7 @@ app.get('/api/company/lookup', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
+    log('CNPJ', 'ERROR', 'Consulta CNPJ falhou', { error: error.message });
     return res.status(502).json({
       error: 'Não foi possível consultar o CNPJ.',
       message: error.message,
@@ -365,7 +436,7 @@ app.post('/api/assessments', async (req, res) => {
       report
     });
   } catch (error) {
-    console.error(error);
+    log('API', 'ERROR', 'Falha ao processar relatório', { error: error.message });
     return res.status(500).json({
       error: 'Falha ao processar o relatório de circularidade.',
       message: error.message
@@ -539,9 +610,17 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`CosmoBrasil backend listening on port ${PORT}`);
+  log('INIT', 'INFO', `CosmoBrasil backend listening on port ${PORT}`);
 });
 
-initDb().catch((error) => {
-  console.warn('Database initialization skipped or failed:', error.message);
+initDb().then(async () => {
+  const pool = getPool();
+  if (pool) {
+    const schema = await detectarSchema(pool).catch(() => null);
+    if (schema) {
+      log('SCHEMA', 'INFO', 'Colunas detectadas', schema);
+    }
+  }
+}).catch((error) => {
+  log('DB', 'WARN', 'Database init skipped or failed', { error: error.message });
 });

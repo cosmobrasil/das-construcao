@@ -301,31 +301,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid rgba(212, 175, 55, 0.45);
-            padding: 1rem 2rem;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: auto;
-            align-self: flex-start;
-        }
-
-        .btn-secondary:hover {
-            background: rgba(212, 175, 55, 0.1);
-            border-color: rgba(212, 175, 55, 0.8);
-        }
-
-        .btn-secondary:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
         .nav-buttons {
             display: flex;
             justify-content: space-between;
@@ -447,12 +422,6 @@
             gap: 1rem;
             align-items: flex-start;
             margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .report-actions {
-            display: flex;
-            gap: 0.75rem;
             flex-wrap: wrap;
         }
 
@@ -711,10 +680,6 @@
                             <input id="companyCity" type="text" placeholder="Preenchido pela API">
                         </div>
                         <div class="field-group">
-                            <label for="companyState">UF / Estado</label>
-                            <input id="companyState" type="text" maxlength="2" placeholder="Ex.: SP">
-                        </div>
-                        <div class="field-group">
                             <label for="companyCnae">CNAE</label>
                             <input id="companyCnae" type="text" placeholder="Preenchido pela API">
                         </div>
@@ -939,10 +904,7 @@
                             <h2 class="report-title" id="reportTitle">Gerando relatório...</h2>
                             <p class="report-subtitle" id="reportSubtitle">As respostas estão sendo consolidadas e enviadas para o backend.</p>
                         </div>
-                        <div class="report-actions">
-                            <button class="btn-secondary" id="reportDownloadBtn" type="button" onclick="downloadReportHtml()" disabled>Baixar relatório HTML</button>
-                            <button class="btn-primary" style="margin-top: 0.25rem;" onclick="location.reload()">Nova avaliação</button>
-                        </div>
+                        <button class="btn-primary" style="margin-top: 0.25rem;" onclick="location.reload()">Nova avaliação</button>
                     </div>
 
                     <div class="report-status" id="reportStatus">Preparando análise final.</div>
@@ -1020,15 +982,6 @@
     <script>
         const totalQuestions = 12;
         const API_BASE_URL = window.COSMOBRASIL_API_BASE_URL || '';
-        const FETCH_TIMEOUT_MS = 15000;
-
-        function fetchComTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
-            return fetch(url, { ...options, signal: controller.signal })
-                .finally(() => clearTimeout(timer));
-        }
-
         const NUMBER_FORMAT = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 
         const QUESTION_CONFIG_BY_STEP = {
@@ -1083,7 +1036,6 @@
             name: document.getElementById('companyName'),
             responsible: document.getElementById('companyResponsible'),
             city: document.getElementById('companyCity'),
-            state: document.getElementById('companyState'),
             cnae: document.getElementById('companyCnae'),
             email: document.getElementById('companyEmail')
         };
@@ -1107,14 +1059,12 @@
         const igcChart = document.getElementById('igcChart');
         const igcChartValue = document.getElementById('igcChartValue');
         const igcChartLabel = document.getElementById('igcChartLabel');
-        const reportDownloadBtn = document.getElementById('reportDownloadBtn');
 
         let companyData = {
             identifier: '',
             name: '',
             responsible: '',
             city: '',
-            state: '',
             cnae: '',
             email: ''
         };
@@ -1122,16 +1072,6 @@
         let recordedAnswers = {};
         let reportRequested = false;
         let lastReport = null;
-        let lastArchiveMeta = null;
-
-        function invalidateReport() {
-            reportRequested = false;
-            lastReport = null;
-            lastArchiveMeta = null;
-            if (reportDownloadBtn) {
-                reportDownloadBtn.disabled = true;
-            }
-        }
 
         function setCompanyStatus(message, type = '') {
             companyStatus.textContent = message;
@@ -1147,7 +1087,6 @@
             companyInputs.name.value = data?.name || '';
             companyInputs.responsible.value = data?.responsible || '';
             companyInputs.city.value = data?.city || '';
-            companyInputs.state.value = String(data?.state || '').toUpperCase();
             companyInputs.cnae.value = data?.cnae || '';
             companyInputs.email.value = data?.email || '';
         }
@@ -1158,7 +1097,6 @@
                 companyInputs.name.value.trim() &&
                 companyInputs.responsible.value.trim() &&
                 companyInputs.city.value.trim() &&
-                companyInputs.state.value.trim() &&
                 companyInputs.cnae.value.trim() &&
                 companyInputs.email.value.trim();
 
@@ -1191,8 +1129,6 @@
                 answerLabel: answerMeta.label,
                 points: answerMeta.points
             };
-
-            invalidateReport();
         }
 
         function buildAnswerPayload() {
@@ -1212,15 +1148,6 @@
 
         function format(value) {
             return NUMBER_FORMAT.format(Number(value || 0));
-        }
-
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
         }
 
         function getBand(score) {
@@ -1414,278 +1341,14 @@
             ctx.fillText('IGC', center, center + 20);
         }
 
-        function getDonutColor(value) {
-            if (value >= 85) return '#16a34a';
-            if (value >= 65) return '#38bdf8';
-            if (value >= 35) return '#f59e0b';
-            return '#ef4444';
-        }
-
-        function buildReportDownloadHtml(report) {
-            const currentDate = new Date().toLocaleString('pt-BR', {
-                dateStyle: 'full',
-                timeStyle: 'short'
-            });
-            const companyLabel = escapeHtml(report.company?.name || report.company?.nome || 'Empresa analisada');
-            const identifierLabel = escapeHtml(report.company?.identifier || companyData.identifier || '');
-            const sourceLabel = escapeHtml(report.sourceLabel || 'diagnóstico do app');
-            const archiveLabel = lastArchiveMeta?.persisted
-                ? escapeHtml(`Arquivado no backend com ID ${lastArchiveMeta.assessmentId}.`)
-                : escapeHtml(`Arquivamento indisponível${lastArchiveMeta?.archiveError ? `: ${lastArchiveMeta.archiveError}` : '.'}`);
-            const summary = escapeHtml(report.summary || '');
-            const detail = escapeHtml(report.detail || '');
-            const bandLabel = escapeHtml(report.band?.label || 'Básico');
-            const igcValue = Number(report.igc || 0);
-            const pcmValue = Number(report.pcm || 0);
-            const totalPoints = Number(report.totalPoints || 0);
-            const averagePoints = Number(report.averagePoints || 0);
-            const radius = 78;
-            const circumference = 2 * Math.PI * radius;
-            const dashOffset = circumference - (circumference * Math.max(0, Math.min(100, igcValue))) / 100;
-            const donutColor = getDonutColor(igcValue);
-            const strengths = (report.strengths || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-            const opportunities = (report.opportunities || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-            const recommendations = (report.recommendations || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
-            const stageRows = (report.stageScores || []).map((stage) => `
-                <div class="stage-row">
-                    <div class="stage-name">${escapeHtml(stage.label)}</div>
-                    <div class="stage-value">${format(stage.score)}%</div>
-                    <div class="stage-meta">${format(stage.rawPoints)} de ${format(stage.maxPoints)} pontos</div>
-                </div>
-            `).join('');
-
-            return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Circularidade Empresarial</title>
-    <style>
-        :root {
-            --bg-color: #020617;
-            --glass-bg: rgba(15, 23, 42, 0.72);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --gold: #D4AF37;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: var(--text-primary);
-            background:
-                radial-gradient(circle at top, rgba(30, 41, 59, 0.95), transparent 45%),
-                var(--bg-color);
-            min-height: 100vh;
-            padding: 32px 20px;
-        }
-        .page { max-width: 1100px; margin: 0 auto; }
-        .banner, .card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(16px);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .banner { padding: 28px; margin-bottom: 18px; }
-        .kicker {
-            margin: 0 0 8px 0;
-            color: var(--gold);
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        h1, h2, h3, p { margin-top: 0; }
-        h1 { margin-bottom: 10px; font-size: 30px; line-height: 1.15; }
-        .subtitle { color: var(--text-secondary); line-height: 1.6; margin-bottom: 0; }
-        .meta { margin-top: 14px; color: var(--text-secondary); font-size: 14px; }
-        .grid {
-            display: grid;
-            grid-template-columns: 290px minmax(0, 1fr);
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .card { padding: 20px; }
-        .chart-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 320px;
-        }
-        .chart-label { text-align: center; margin-top: 14px; }
-        .chart-label strong { display: block; font-size: 28px; }
-        .chart-label span { color: var(--text-secondary); font-size: 14px; }
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-        .metric {
-            padding: 16px;
-            border-radius: 14px;
-            border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.03);
-        }
-        .metric .label { color: var(--text-secondary); font-size: 12px; margin-bottom: 6px; }
-        .metric .value { font-size: 24px; font-weight: 700; }
-        .metric .hint { margin-top: 6px; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
-        .sections {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .section h3 { margin-bottom: 12px; font-size: 18px; }
-        ul { margin: 0; padding-left: 20px; color: var(--text-primary); }
-        li { margin-bottom: 10px; color: var(--text-secondary); line-height: 1.5; }
-        .footer-note {
-            margin-top: 14px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        .stage-list {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .stage-row {
-            border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.03);
-            border-radius: 14px;
-            padding: 14px;
-        }
-        .stage-name { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-        .stage-value { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-        .stage-meta { font-size: 12px; color: var(--text-secondary); }
-        .donut-wrap {
-            position: relative;
-            width: 220px;
-            height: 220px;
-        }
-        .donut-center {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            pointer-events: none;
-        }
-        .donut-center strong { font-size: 34px; line-height: 1; }
-        .donut-center span { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
-        @media (max-width: 760px) {
-            .grid, .sections, .stage-list { grid-template-columns: 1fr; }
-            .metrics { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-    <main class="page">
-        <section class="banner">
-            <p class="kicker">Relatório de Circularidade Empresarial</p>
-            <h1>${companyLabel}</h1>
-            <p class="subtitle">Relatório gerado para ${identifierLabel || 'o cadastro informado'}.</p>
-            <p class="subtitle">Fonte usada no download: ${sourceLabel}.</p>
-            <p class="subtitle">${archiveLabel}</p>
-            <div class="meta">Gerado em ${escapeHtml(currentDate)}</div>
-        </section>
-        <section class="grid">
-            <div class="card chart-card">
-                <div class="donut-wrap">
-                    <svg viewBox="0 0 220 220" width="220" height="220" role="img" aria-label="Gráfico de IGC">
-                        <circle cx="110" cy="110" r="${radius}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="22"></circle>
-                        <circle cx="110" cy="110" r="${radius}" fill="none" stroke="${donutColor}" stroke-width="22" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 110 110)"></circle>
-                    </svg>
-                    <div class="donut-center">
-                        <strong>${format(igcValue)}%</strong>
-                        <span>IGC</span>
-                    </div>
-                </div>
-                <div class="chart-label">
-                    <strong>${format(igcValue)}%</strong>
-                    <span>Índice de Circularidade - ${bandLabel}</span>
-                </div>
-            </div>
-            <div class="card">
-                <div class="metrics">
-                    <div class="metric"><div class="label">Índice de Circularidade (IGC)</div><div class="value">${format(igcValue)}%</div><div class="hint">Visão geral da maturidade circular</div></div>
-                    <div class="metric"><div class="label">Perfil de Circularidade de Materiais (PCM)</div><div class="value">${format(pcmValue)}%</div><div class="hint">Foco em materiais, reaproveitamento e fim de vida</div></div>
-                    <div class="metric"><div class="label">Total de Pontos</div><div class="value">${format(totalPoints)}</div><div class="hint">Somatório bruto da avaliação</div></div>
-                    <div class="metric"><div class="label">Média de Pontos</div><div class="value">${format(averagePoints)}</div><div class="hint">Média por questão respondida</div></div>
-                </div>
-            </div>
-        </section>
-        <section class="sections">
-            <div class="card section">
-                <h3>Leitura executiva</h3>
-                <p class="subtitle">${summary}</p>
-                <p class="subtitle">${detail}</p>
-            </div>
-            <div class="card section">
-                <h3>Pontos fortes</h3>
-                <ul>${strengths || '<li>Nenhum destaque registrado.</li>'}</ul>
-            </div>
-            <div class="card section">
-                <h3>Oportunidades</h3>
-                <ul>${opportunities || '<li>Nenhuma oportunidade registrada.</li>'}</ul>
-            </div>
-        </section>
-        <section class="card section">
-            <h3>Recomendações prioritárias</h3>
-            <ul>${recommendations || '<li>Nenhuma recomendação registrada.</li>'}</ul>
-            <div class="footer-note">O relatório é gerado com base nas respostas registradas neste diagnóstico e não substitui certificações formais ou validações técnicas específicas.</div>
-        </section>
-        <section class="card section" style="margin-top: 16px;">
-            <h3>Desempenho por estágio</h3>
-            <div class="stage-list">${stageRows}</div>
-        </section>
-    </main>
-</body>
-</html>`;
-        }
-
-        function downloadReportHtml() {
-            if (!lastReport) {
-                setReportStatus('Gere o relatório antes de fazer o download.', 'error');
-                return;
-            }
-
-            const html = buildReportDownloadHtml(lastReport);
-            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            const identifier = String(lastReport.company?.identifier || companyData.identifier || 'relatorio').replace(/\D/g, '');
-            link.href = url;
-            link.download = `relatorio-circularidade-${identifier || 'empresa'}.html`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-        }
-
         function renderReport(report, sourceLabel) {
-            lastReport = { ...report, sourceLabel };
+            lastReport = report;
             reportRequested = true;
-            if (reportDownloadBtn) {
-                reportDownloadBtn.disabled = false;
-            }
 
             const companyLabel = report.company?.name || report.company?.nome || 'Empresa analisada';
             reportTitle.textContent = companyLabel;
             reportSubtitle.textContent = `Relatório de Circularidade Empresarial gerado para ${report.company?.identifier || companyData.identifier || 'o cadastro informado'} via ${sourceLabel}.`;
-            if (lastArchiveMeta?.persisted) {
-                const archiveLabel = lastArchiveMeta.assessmentId ? ` Arquivado sob o ID ${lastArchiveMeta.assessmentId}.` : '';
-                setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.${archiveLabel}`, 'success');
-            } else if (lastArchiveMeta) {
-                setReportStatus(`Relatório gerado, mas não arquivado no backend. ${lastArchiveMeta.archiveError || 'Verifique a conexão com o banco Railway.'}`, 'error');
-            } else {
-                setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.`, 'success');
-            }
+            setReportStatus(`Relatório gerado com sucesso${sourceLabel ? ` - ${sourceLabel}` : ''}.`, 'success');
 
             metricIGC.textContent = `${format(report.igc)}%`;
             metricIGCHint.textContent = `${report.band.label} - visão geral da maturidade circular`;
@@ -1705,65 +1368,21 @@
             (report.stageScores || []).forEach((stage) => {
                 const item = document.createElement('div');
                 item.className = 'stage-item';
-                const name = document.createElement('div');
-                name.className = 'stage-name';
-                name.textContent = stage.label;
-
-                const score = document.createElement('div');
-                score.className = 'stage-score';
-                score.textContent = `${format(stage.score)}%`;
-
-                const meta = document.createElement('div');
-                meta.className = 'stage-meta';
-                meta.textContent = `${format(stage.rawPoints)} de ${format(stage.maxPoints)} pontos`;
-
-                item.appendChild(name);
-                item.appendChild(score);
-                item.appendChild(meta);
+                item.innerHTML = `
+                    <div class="stage-name">${stage.label}</div>
+                    <div class="stage-score">${format(stage.score)}%</div>
+                    <div class="stage-meta">${format(stage.rawPoints)} de ${format(stage.maxPoints)} pontos</div>
+                `;
                 stageList.appendChild(item);
             });
 
             drawDoughnut(report.igc);
         }
 
-        function renderFallbackReport(message = 'Relatório gerado com processamento local.') {
+        function renderFallbackReport(message) {
             const report = calculateLocalReport();
             renderReport(report, 'processamento local');
-            if (lastArchiveMeta?.persisted === false) {
-                setReportStatus(`${message} O relatório não foi arquivado no backend. ${lastArchiveMeta.archiveError || ''}`.trim(), 'error');
-            } else {
-                setReportStatus(message, 'success');
-            }
-        }
-
-        async function lookupCompanyPublic(identifier) {
-            const response = await fetchComTimeout(`https://brasilapi.com.br/api/cnpj/v1/${encodeURIComponent(identifier)}`, {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Consulta pública falhou (${response.status}).`);
-            }
-
-            const data = await response.json();
-            const socios = Array.isArray(data?.qsa) ? data.qsa : [];
-            const responsible = socios[0]
-                ? [socios[0].nome_socio, socios[0].qualificacao_socio].filter(Boolean).join(' - ')
-                : '';
-
-            return {
-                identifier,
-                name: data?.razao_social || data?.nome_fantasia || '',
-                responsible,
-                city: data?.municipio || '',
-                state: String(data?.uf || '').toUpperCase(),
-                cnae: data?.cnae_fiscal || data?.descricao_cnae_fiscal || '',
-                email: '',
-                source: 'brasilapi'
-            };
+            setReportStatus(message, 'error');
         }
 
         async function lookupCompany() {
@@ -1786,7 +1405,7 @@
             companyContinueBtn.disabled = true;
 
             try {
-                const response = await fetchComTimeout(`${API_BASE_URL}/api/company/lookup?documento=${encodeURIComponent(identifier)}`, {
+                const response = await fetch(`${API_BASE_URL}/api/company/lookup?documento=${encodeURIComponent(identifier)}`, {
                     method: 'GET',
                     headers: {
                         Accept: 'application/json'
@@ -1794,17 +1413,7 @@
                 });
 
                 if (!response.ok) {
-                    let backendMessage = `Resposta inválida da API (${response.status})`;
-                    try {
-                        const errorBody = await response.json();
-                        backendMessage = errorBody?.message || errorBody?.error || backendMessage;
-                        if (errorBody?.hint) {
-                            backendMessage = `${backendMessage} ${errorBody.hint}`;
-                        }
-                    } catch (_parseError) {
-                        // Keep the generic status message if the body is not JSON.
-                    }
-                    throw new Error(backendMessage);
+                    throw new Error(`Resposta inválida da API (${response.status})`);
                 }
 
                 const data = await response.json();
@@ -1813,32 +1422,17 @@
                     name: data?.nome || '',
                     responsible: data?.responsavel || '',
                     city: data?.cidade || '',
-                    state: String(data?.state || '').toUpperCase(),
                     cnae: data?.cnae || '',
-                    email: data?.email || '',
-                    source: data?.source || ''
+                    email: data?.email || ''
                 };
 
                 fillCompanyFields(companyData);
-                const sourceLabel = companyData.source === 'empresaqui'
-                    ? 'EmpresaAqui'
-                    : companyData.source === 'brasilapi'
-                        ? 'BrasilAPI'
-                        : 'consulta automática';
-                setCompanyStatus(`Dados carregados com sucesso via ${sourceLabel}.`, 'success');
+                setCompanyStatus('Dados carregados com sucesso.', 'success');
                 validateCompanyForm();
             } catch (error) {
                 console.error(error);
-                try {
-                companyData = await lookupCompanyPublic(identifier);
-                fillCompanyFields(companyData);
-                setCompanyStatus('EmpresaAqui indisponível. Dados carregados via fallback público.', 'success');
+                setCompanyStatus('Não foi possível consultar a API da empresaqui. Você pode preencher os campos manualmente para continuar.', 'error');
                 validateCompanyForm();
-                } catch (fallbackError) {
-                    console.error(fallbackError);
-                    setCompanyStatus(error.message || 'Não foi possível consultar a API da empresaqui. Você pode preencher os campos manualmente para continuar.', 'error');
-                    validateCompanyForm();
-                }
             }
         }
 
@@ -1856,12 +1450,12 @@
             };
 
             if (!API_BASE_URL) {
-                renderFallbackReport();
+                renderFallbackReport('Backend indisponível no momento. Resultado calculado localmente.');
                 return;
             }
 
             try {
-                const response = await fetchComTimeout(`${API_BASE_URL}/api/assessments`, {
+                const response = await fetch(`${API_BASE_URL}/api/assessments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1875,22 +1469,10 @@
                 }
 
                 const data = await response.json();
-                lastArchiveMeta = {
-                    assessmentId: data.assessmentId || null,
-                    persisted: Boolean(data.persisted),
-                    archiveStatus: data.archiveStatus || '',
-                    archiveError: data.archiveError || ''
-                };
-                renderReport(data.report, data.persisted ? 'backend Railway + PostgreSQL' : 'backend sem arquivamento');
+                renderReport(data.report, data.assessmentId ? 'backend Railway + PostgreSQL' : 'backend');
             } catch (error) {
                 console.error(error);
-                lastArchiveMeta = {
-                    assessmentId: null,
-                    persisted: false,
-                    archiveStatus: 'not_archived',
-                    archiveError: error.message || 'Falha ao comunicar com o backend.'
-                };
-                renderFallbackReport('Relatório gerado com processamento local.');
+                renderFallbackReport('Backend indisponível ou token/URL não configurados. O relatório foi calculado localmente como fallback.');
             }
         }
 
@@ -1961,10 +1543,8 @@
                 companyData.name = companyInputs.name.value.trim();
                 companyData.responsible = companyInputs.responsible.value.trim();
                 companyData.city = companyInputs.city.value.trim();
-                companyData.state = companyInputs.state.value.trim().toUpperCase();
                 companyData.cnae = companyInputs.cnae.value.trim();
                 companyData.email = companyInputs.email.value.trim();
-                invalidateReport();
                 validateCompanyForm();
             });
         });

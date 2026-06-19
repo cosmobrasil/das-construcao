@@ -701,7 +701,7 @@
                 </div>
                 <div class="hero-actions">
                     <button class="btn btn-primary" id="refreshBtn" type="button">Atualizar distrito</button>
-                    <a class="btn btn-secondary" href="/questionario_circularidade/">Voltar ao formulário</a>
+                    <a class="btn btn-secondary" href="/" aria-label="Recarregar dashboard">Atualizar painel</a>
                 </div>
             </div>
 
@@ -723,7 +723,7 @@
                         </div>
                         <div class="field">
                             <label for="cityFilter">Cidade</label>
-                            <input id="cityFilter" type="text" value="Divinopolis" placeholder="Divinopolis">
+                            <input id="cityFilter" type="text" value="Divinópolis" placeholder="Divinópolis">
                         </div>
                     </form>
                     <div class="filters-actions">
@@ -926,9 +926,18 @@
     <script src="config.js"></script>
     <script>
         const API_BASE_URL = window.COSMOBRASIL_API_BASE_URL || '';
+        const FETCH_TIMEOUT_MS = 15000;
+
+        function fetchComTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            return fetch(url, { ...options, signal: controller.signal })
+                .finally(() => clearTimeout(timer));
+        }
+
         const fmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
         const intFmt = new Intl.NumberFormat('pt-BR');
-        const DEFAULT_FILTERS = { state: 'MG', city: 'Divinopolis' };
+        const DEFAULT_FILTERS = { state: 'MG', city: 'Divinópolis' };
 
         const els = {
             statusValue: document.getElementById('statusValue'),
@@ -1321,7 +1330,7 @@
             els.statusCopy.innerHTML = '<span class="loading"><span></span><span></span><span></span></span>';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/dashboard/overview${params.toString() ? `?${params.toString()}` : ''}`, {
+                const response = await fetchComTimeout(`${API_BASE_URL}/api/dashboard/overview${params.toString() ? `?${params.toString()}` : ''}`, {
                     headers: { Accept: 'application/json' }
                 });
 

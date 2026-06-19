@@ -1,27 +1,29 @@
 # Status do App
 
-Data da atualização: 2026-06-01 11:04:24 -03
+Data da atualização: 2026-06-03 00:00:00 -03
 
 ## Estágio atual
 
-Fase de operação estabilizada do questionário e do backend, com primeira versão do novo dashboard territorial já implementada para o caso de Divinópolis, Minas Gerais, no setor de construção civil.
+Fase de separação operacional dos frontends, com backend persistente no Railway e duas entregas estáticas prontas para deploy independente: formulário operacional e dashboard territorial coletivo para Divinópolis, Minas Gerais, no setor de construção civil.
 
-O app deixou de ser apenas um formulário com relatório final individual e passou a operar em duas camadas:
+O app deixou de ser apenas um formulário com relatório final individual e passou a operar em duas camadas independentes:
 
 - captura operacional da empresa e do questionário
-- leitura territorial agregada com drilldown para relatórios arquivados
+- leitura territorial agregada para decisão coletiva do distrito
 
 ## O que está pronto
 
-- Frontend principal publicado via Netlify com entrada em `frontend/index.html`.
-- Questionário operacional em `frontend/questionario_circularidade/`.
+- Dashboard estático preparado para deploy direto pela branch `netlify-dashboard`.
+- Repositório estático dedicado do formulário pronto em `repos/formulario-construcao/`.
+- Repositório estático dedicado do dashboard pronto em `repos/dashboard-construcao/`.
+- Home unificada preservada em `frontend/index.html` apenas como referência de navegação.
 - Backend Node.js em `api/` com cálculo de IGC, PCM, total e média de pontos.
 - Persistência no PostgreSQL via Railway.
 - Arquivamento do relatório final de cada resposta em `analysis_json`.
 - Endpoint público de leitura do relatório arquivado por `assessmentId`.
-- Dashboard territorial implementado em `frontend/dashboard/index.html`.
 - Agregação do dashboard reescrita para priorizar a carteira por empresa, sem perder o histórico de avaliações.
 - Camada heurística de diagnóstico executivo no dashboard.
+- Validação de submissão no backend para rejeitar payload malformado ou incompleto.
 - Integração opcional com OpenRouter para leitura cognitiva adicional quando a chave estiver configurada.
 
 ## O que foi validado
@@ -31,6 +33,9 @@ O app deixou de ser apenas um formulário com relatório final individual e pass
 - Gravação de respostas do formulário no banco.
 - Arquivamento e recuperação do relatório final por `assessmentId`.
 - Healthcheck real do banco em `/api/health`.
+- Sincronização entre `frontend/` e os sites espelhados em `repos/`.
+- Resposta do agregado do dashboard com base pública populada.
+- Rejeição de submissão inválida no endpoint `POST /api/assessments`.
 - Sintaxe do backend do dashboard com `node -c api/dashboard.js`.
 - Sintaxe do JavaScript inline do dashboard com parsing local.
 
@@ -46,24 +51,28 @@ O app deixou de ser apenas um formulário com relatório final individual e pass
 - Lista de empresas líderes.
 - Lista de empresas de atenção.
 - Lista de avaliações recentes.
-- Drilldown do relatório arquivado da empresa dentro do painel.
+- Foco exclusivamente coletivo, sem drilldown individual dentro do painel.
 
 ## O que ainda não está concluído
 
-- Validação visual completa do novo dashboard com base real no navegador.
-- Ajuste fino da narrativa executiva com dados reais de Divinópolis.
-- Eventual refinamento da camada de IA após observar o comportamento da base.
-- Publicação e validação final do novo dashboard no deploy produtivo, caso o ambiente ainda esteja servindo a versão anterior.
+- Publicação efetiva dos dois sites separados na Netlify com domínios próprios.
+- Entrada de respostas reais de empresas para substituir a massa sintética de demonstração.
+- Ajuste fino da narrativa executiva com a primeira base real de Divinópolis.
+- Eventual refinamento da camada de IA após observar o comportamento da base real.
+- Decisão sobre quando remover a massa `[DEMO]` e abrir operação exclusivamente com dados reais.
 
 ## Risco operacional atual
 
-- O fluxo principal do aplicativo já funciona: formulário, gravação, arquivamento e leitura.
-- O principal ponto pendente não é o backend transacional, e sim a calibração do novo dashboard com dados reais de produção.
+- O fluxo principal do aplicativo já funciona: formulário, gravação, arquivamento, leitura e dashboard.
+- O principal ponto pendente não é infraestrutura nem persistência, e sim a transição da base sintética para a base real de produção.
 - Se a chave do OpenRouter falhar ou não existir, o painel continua operando com heurística local.
+- O backend agora rejeita submissões incompletas, o que reduz risco de poluição silenciosa da base.
+- Ainda existe risco documental se alguém assumir que o deploy continua unificado; a referência correta agora é a separação por site.
 
 ## Próximo estágio recomendado
 
-- Validar o dashboard no navegador com dados reais do recorte `Divinopolis/MG`.
-- Ajustar textos, prioridades e estados vazios conforme a primeira leva de respostas.
-- Publicar a nova versão do dashboard no ambiente produtivo.
-- Só depois disso iniciar refinamentos cosméticos ou expansão de filtros.
+- Publicar `repos/formulario-construcao` e `repos/dashboard-construcao` em sites independentes.
+- Iniciar coleta real no formulário público.
+- Monitorar as primeiras submissões reais em `Divinopolis/MG`.
+- Remover a massa `[DEMO]` quando a base real já permitir leitura útil do distrito.
+- Só depois disso iniciar refinamentos cosméticos, expansão de filtros ou camada agente mais sofisticada.

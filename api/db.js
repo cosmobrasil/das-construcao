@@ -101,7 +101,28 @@ async function initDb() {
     );
 
     ALTER TABLE assessments ALTER COLUMN company_id DROP NOT NULL;
+    ALTER TABLE assessments ADD COLUMN IF NOT EXISTS relatorio_html TEXT;
   `);
+
+  // Detecta colunas e schema após init
+  await detectarSchema(currentPool);
+}
+
+async function detectarSchema(pool) {
+  try {
+    const result = await pool.query(`
+      SELECT
+        EXISTS (SELECT 1 FROM information_schema.columns
+          WHERE table_name='assessments' AND column_name='relatorio_html') AS has_relatorio_html,
+        EXISTS (SELECT 1 FROM information_schema.columns
+          WHERE table_name='assessments' AND column_name='indice_pcm') AS has_indice_pcm
+    `);
+    const { has_relatorio_html, has_indice_pcm } = result.rows[0];
+    // Silent detection — logged by server.js on startup
+    return { hasRelatorioHtml: has_relatorio_html, hasIndicePcm: has_indice_pcm };
+  } catch {
+    return { hasRelatorioHtml: false, hasIndicePcm: false };
+  }
 }
 
 async function upsertCompany(company) {
@@ -361,6 +382,7 @@ module.exports = {
   getPool,
   checkDbHealth,
   initDb,
+  detectarSchema,
   upsertCompany,
   saveAssessment,
   getAssessmentById,
